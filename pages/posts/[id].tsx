@@ -235,7 +235,6 @@ const RenderBlock: React.FC<{ block: BlockObjectResponse }> = ({ block }) => {
     case 'table':
       const { has_column_header, has_row_header, table_width } = block.table
       const rows = block.children
-      console.log(JSON.stringify(rows))
 
       return (
         <table>
