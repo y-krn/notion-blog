@@ -2,14 +2,27 @@
 import {
   BlockObjectResponse,
   BulletedListItemBlockObjectResponse,
+  CodeBlockObjectResponse,
   NumberedListItemBlockObjectResponse,
   RichTextItemResponse,
 } from '@notionhq/client/build/src/api-endpoints'
 import type { NextPage, GetStaticPaths, GetStaticProps } from 'next'
+import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import React from 'react'
+import SyntaxHighlighter from 'react-syntax-highlighter'
+import { solarizedLight } from 'react-syntax-highlighter/dist/cjs/styles/hljs'
 import { getPublishedPosts, getPostById, getPageContent } from '@/lib/notion'
+interface Block {
+  id: string
+  created_time: string
+  properties: {
+    Title: { title: { plain_text: string }[] }
+    Tags: { multi_select: { name: string }[] }
+    Published: { checkbox: boolean }
+  }
+}
 
 type Color =
   | 'default'
@@ -221,10 +234,14 @@ const RenderBlock: React.FC<{ block: BlockObjectResponseWithChildren }> = ({
         </details>
       )
     case 'code':
+      const codeBlock = block as CodeBlockObjectResponse
+      const code = block.code.rich_text[0].plain_text
+      const language = codeBlock.code.language || 'text'
+
       return (
-        <pre key={block.id}>
-          <code>{renderRichText(block.code.rich_text)}</code>
-        </pre>
+        <SyntaxHighlighter language={language} style={solarizedLight}>
+          {code}
+        </SyntaxHighlighter>
       )
     case 'image':
       const imageUrl =
@@ -295,14 +312,19 @@ const PostPage: NextPage<PostPageProps> = ({ post, blocks }) => {
   }
 
   return (
-    <article className='prose lg:prose-xl container mx-auto'>
-      <h1>{post.properties.Title.title[0].plain_text}</h1>
-      <p>
-        Tags:{' '}
-        {post.properties.Tags.multi_select.map((tag) => tag.name).join(', ')}
-      </p>
-      {renderBlocks(blocks)}
-    </article>
+    <>
+      <Head>
+        <title>{post.properties.Title.title[0].plain_text}</title>
+      </Head>
+      <article className='prose lg:prose-xl container mx-auto'>
+        <h1>{post.properties.Title.title[0].plain_text}</h1>
+        <p>
+          Tags:{' '}
+          {post.properties.Tags.multi_select.map((tag) => tag.name).join(', ')}
+        </p>
+        {renderBlocks(blocks)}
+      </article>
+    </>
   )
 }
 
