@@ -1,5 +1,14 @@
 import { Client } from '@notionhq/client'
-import { BlockObjectResponse } from '@notionhq/client/build/src/api-endpoints'
+import {
+  BlockObjectResponse,
+  PageObjectResponse,
+} from '@notionhq/client/build/src/api-endpoints'
+
+interface ChildrenProperty {
+  children?: BlockObjectResponse[]
+}
+
+type BlockObjectResponseWithChildren = BlockObjectResponse & ChildrenProperty
 
 const notion = new Client({
   auth: process.env.NOTION_API_KEY,
@@ -23,22 +32,24 @@ export const getPublishedPosts = async () => {
 
 export const getPageContent = async (
   pageId: string,
-): Promise<BlockObjectResponse[]> => {
+): Promise<BlockObjectResponseWithChildren[]> => {
   const response = await notion.blocks.children.list({ block_id: pageId })
-  const content = response.results as BlockObjectResponse[]
+  const content = response.results as BlockObjectResponseWithChildren[]
 
   for (const block of content) {
     if (block.has_children) {
       const childBlocks = await getBlockChildren(block.id)
       if (childBlocks.length > 0) {
         block.children = await Promise.all(
-          childBlocks.map(async (childBlock) => {
-            if (childBlock.has_children) {
-              const nestedChildBlocks = await getPageContent(childBlock.id)
-              childBlock.children = nestedChildBlocks
-            }
-            return childBlock
-          }),
+          childBlocks.map(
+            async (childBlock: BlockObjectResponseWithChildren) => {
+              if (childBlock.has_children) {
+                const nestedChildBlocks = await getPageContent(childBlock.id)
+                childBlock.children = nestedChildBlocks
+              }
+              return childBlock
+            },
+          ),
         )
       }
     }
@@ -48,9 +59,14 @@ export const getPageContent = async (
 }
 
 export async function getPostById(postId: string) {
-  const post = await notion.pages.retrieve({ page_id: postId })
+  const post = (await notion.pages.retrieve({
+    page_id: postId,
+  })) as PageObjectResponse
 
-  if (!post.properties.Published.checkbox) {
+  if (
+    post.properties.Published.type === 'checkbox' &&
+    !post.properties.Published.checkbox
+  ) {
     throw new Error('Post not published')
   }
 

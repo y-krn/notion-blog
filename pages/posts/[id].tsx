@@ -1,10 +1,14 @@
+/* eslint-disable @next/next/no-img-element */
 import {
   BlockObjectResponse,
+  BulletedListItemBlockObjectResponse,
+  NumberedListItemBlockObjectResponse,
   RichTextItemResponse,
 } from '@notionhq/client/build/src/api-endpoints'
 import type { NextPage, GetStaticPaths, GetStaticProps } from 'next'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
-import React, { useState } from 'react'
+import React from 'react'
 import { getPublishedPosts, getPostById, getPageContent } from '@/lib/notion'
 
 type Color =
@@ -36,6 +40,12 @@ type Annotations = {
   code: boolean
   color: Color
 }
+
+interface ChildrenProperty {
+  children?: BlockObjectResponse[]
+}
+
+type BlockObjectResponseWithChildren = BlockObjectResponse & ChildrenProperty
 
 interface Post {
   id: string
@@ -101,7 +111,9 @@ const getColorValue = (color: Color): string => {
   return colorMap[color] || 'inherit'
 }
 
-const renderBlocks = (blocks: BlockObjectResponse[]): React.ReactNode[] => {
+const renderBlocks = (
+  blocks: BlockObjectResponseWithChildren[],
+): React.ReactNode[] => {
   const renderedBlocks: React.ReactNode[] = []
 
   for (let i = 0; i < blocks.length; i++) {
@@ -111,9 +123,10 @@ const renderBlocks = (blocks: BlockObjectResponse[]): React.ReactNode[] => {
       const listItems: React.ReactNode[] = []
 
       while (i < blocks.length && blocks[i].type === 'bulleted_list_item') {
+        const nextBlock = blocks[i] as BulletedListItemBlockObjectResponse
         listItems.push(
-          <li key={blocks[i].id}>
-            {blocks[i].bulleted_list_item.rich_text[0]?.plain_text || ''}
+          <li key={nextBlock.id}>
+            {nextBlock.bulleted_list_item.rich_text[0]?.plain_text || ''}
           </li>,
         )
         i++
@@ -127,9 +140,10 @@ const renderBlocks = (blocks: BlockObjectResponse[]): React.ReactNode[] => {
       const listItems: React.ReactNode[] = []
 
       while (i < blocks.length && blocks[i].type === 'numbered_list_item') {
+        const nextBlock = blocks[i] as NumberedListItemBlockObjectResponse
         listItems.push(
-          <li key={blocks[i].id}>
-            {blocks[i].numbered_list_item.rich_text[0]?.plain_text || ''}
+          <li key={nextBlock.id}>
+            {nextBlock.numbered_list_item.rich_text[0]?.plain_text || ''}
           </li>,
         )
         i++
@@ -146,16 +160,9 @@ const renderBlocks = (blocks: BlockObjectResponse[]): React.ReactNode[] => {
   return renderedBlocks
 }
 
-const RenderBlock: React.FC<{ block: BlockObjectResponse }> = ({ block }) => {
-  const [toggleState, setToggleState] = useState<{ [key: string]: boolean }>({})
-
-  const handleToggleClick = (id: string) => {
-    setToggleState((prevState) => ({
-      ...prevState,
-      [id]: !prevState[id],
-    }))
-  }
-
+const RenderBlock: React.FC<{ block: BlockObjectResponseWithChildren }> = ({
+  block,
+}) => {
   const renderRichText = (richTextItems: RichTextItemResponse[]) => {
     return richTextItems.map((item, index) => {
       const annotations = item.annotations
@@ -165,9 +172,9 @@ const RenderBlock: React.FC<{ block: BlockObjectResponse }> = ({ block }) => {
       const link = item.href
       if (link) {
         return (
-          <a href={link} key={index}>
+          <Link href={link} key={index}>
             {decoratedText}
-          </a>
+          </Link>
         )
       }
 
@@ -239,19 +246,22 @@ const RenderBlock: React.FC<{ block: BlockObjectResponse }> = ({ block }) => {
       return (
         <table>
           <tbody>
-            {rows.map((row, rowIndex) => (
+            {rows?.map((row, rowIndex: number) => (
               <tr key={row.id}>
-                {row.table_row.cells.map((cell, cellIndex) => (
-                  <td key={`${row.id}-${cellIndex}`}>
-                    {has_row_header && cellIndex === 0 && (
-                      <strong>{cell[0].plain_text}</strong>
-                    )}
-                    {has_column_header && rowIndex === 0 && (
-                      <strong>{cell[0].plain_text}</strong>
-                    )}
-                    {rowIndex !== 0 && <span>{cell[0].plain_text}</span>}
-                  </td>
-                ))}
+                {row.type === 'table_row' &&
+                  row.table_row.cells.map(
+                    (cell: RichTextItemResponse[], cellIndex: number) => (
+                      <td key={`${row.id}-${cellIndex}`}>
+                        {has_row_header && cellIndex === 0 && (
+                          <strong>{cell[0].plain_text}</strong>
+                        )}
+                        {has_column_header && rowIndex === 0 && (
+                          <strong>{cell[0].plain_text}</strong>
+                        )}
+                        {rowIndex !== 0 && <span>{cell[0].plain_text}</span>}
+                      </td>
+                    ),
+                  )}
               </tr>
             ))}
           </tbody>
@@ -260,19 +270,18 @@ const RenderBlock: React.FC<{ block: BlockObjectResponse }> = ({ block }) => {
     case 'column_list':
       return (
         <div className='flex'>
-          {block.children.map((column) => (
+          {block.children?.map((column: BlockObjectResponseWithChildren) => (
             <div key={column.id} className='flex-1'>
-              {column.children &&
-                column.children.map((childBlock) => (
-                  <RenderBlock key={childBlock.id} block={childBlock} />
-                ))}
+              {column.children?.map((childBlock) => (
+                <RenderBlock key={childBlock.id} block={childBlock} />
+              ))}
             </div>
           ))}
         </div>
       )
     case 'file': //TODO
     case 'child_page': //TODO
-      return ''
+      return null
     default:
       return <p key={block.id}>Unsupported block type. {block.type}</p>
   }
