@@ -16,6 +16,14 @@ interface HomeProps {
   posts: Post[]
 }
 
+function formatDate(input: string) {
+  return new Date(input).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}
+
 const Home: NextPage<HomeProps> = ({ posts }) => {
   return (
     <>
@@ -35,8 +43,8 @@ const Home: NextPage<HomeProps> = ({ posts }) => {
                 <dl>
                   <dt className='sr-only'>Published on</dt>
                   <dd className='text-base font-medium leading-6 text-gray-500 dark:text-gray-400'>
-                    <time dateTime='{post.created_time}'>
-                      {post.created_time}
+                    <time dateTime={post.created_time}>
+                      {formatDate(post.created_time)}
                     </time>
                   </dd>
                 </dl>
