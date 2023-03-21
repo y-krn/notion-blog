@@ -13,17 +13,7 @@ import { useRouter } from 'next/router'
 import React from 'react'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { solarizedLight } from 'react-syntax-highlighter/dist/cjs/styles/hljs'
-import TwitterEmbed from '@/components/TwitterEmbed'
 import { getPublishedPosts, getPostById, getPageContent } from '@/lib/notion'
-interface Block {
-  id: string
-  created_time: string
-  properties: {
-    Title: { title: { plain_text: string }[] }
-    Tags: { multi_select: { name: string }[] }
-    Published: { checkbox: boolean }
-  }
-}
 
 type Color =
   | 'default'
@@ -381,7 +371,11 @@ const RenderBlock: React.FC<{ block: BlockObjectResponseWithChildren }> = ({
     case 'child_page': //TODO
       return null
     case 'embed':
-      return <TwitterEmbed tweetUrl={block.embed.url}></TwitterEmbed>
+      return (
+        <blockquote className='twitter-tweet'>
+          <Link href={block.embed.url}></Link>
+        </blockquote>
+      )
     case 'video':
       if (block.video.type === 'external') {
         const embedUrl = convertToEmbedURL(block.video.external.url)
