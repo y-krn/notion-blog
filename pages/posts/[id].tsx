@@ -13,6 +13,7 @@ import { useRouter } from 'next/router'
 import React from 'react'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { solarizedLight } from 'react-syntax-highlighter/dist/cjs/styles/hljs'
+import TwitterEmbed from '@/components/TwitterEmbed'
 import { getPublishedPosts, getPostById, getPageContent } from '@/lib/notion'
 interface Block {
   id: string
@@ -194,6 +195,18 @@ const RenderBlock: React.FC<{ block: BlockObjectResponseWithChildren }> = ({
       return <React.Fragment key={index}>{decoratedText}</React.Fragment>
     })
   }
+
+  const convertToEmbedURL = (url: string) => {
+    const regex = /^https:\/\/www\.youtube\.com\/watch\?v=(.+)$/
+    const match = url.match(regex)
+
+    if (match && match[1]) {
+      return `https://www.youtube.com/embed/${match[1]}`
+    }
+
+    return url
+  }
+
   switch (block.type) {
     case 'paragraph':
       return <p>{renderRichText(block.paragraph.rich_text)}</p>
@@ -219,6 +232,28 @@ const RenderBlock: React.FC<{ block: BlockObjectResponseWithChildren }> = ({
         </div>
       )
     case 'divider':
+      return (
+        <div
+          key={block.id}
+          className='inline-flex items-center justify-center w-full'
+        >
+          <hr className='w-64 h-1 my-8 bg-gray-200 border-0 rounded dark:bg-gray-700' />
+          <div className='absolute px-4 -translate-x-1/2 bg-white left-1/2 dark:bg-gray-900'>
+            <svg
+              aria-hidden='true'
+              className='w-5 h-5 text-gray-700 dark:text-gray-300'
+              viewBox='0 0 24 27'
+              fill='none'
+              xmlns='http://www.w3.org/2000/svg'
+            >
+              <path
+                d='M14.017 18L14.017 10.609C14.017 4.905 17.748 1.039 23 0L23.995 2.151C21.563 3.068 20 5.789 20 8H24V18H14.017ZM0 18V10.609C0 4.905 3.748 1.038 9 0L9.996 2.151C7.563 3.068 6 5.789 6 8H9.983L9.983 18L0 18Z'
+                fill='currentColor'
+              />
+            </svg>
+          </div>
+        </div>
+      )
       return <hr key={block.id} />
     case 'quote':
       return (
@@ -299,6 +334,27 @@ const RenderBlock: React.FC<{ block: BlockObjectResponseWithChildren }> = ({
     case 'file': //TODO
     case 'child_page': //TODO
       return null
+    case 'embed':
+      return <TwitterEmbed tweetUrl={block.embed.url}></TwitterEmbed>
+    case 'video':
+      if (block.video.type === 'external') {
+        const embedUrl = convertToEmbedURL(block.video.external.url)
+        return (
+          <div>
+            <iframe
+              src={embedUrl}
+              title={`Video: ${block.id}`}
+              allowFullScreen
+            ></iframe>
+          </div>
+        )
+      } else {
+        return (
+          <div>
+            <video src={block.video.file.url} controls />
+          </div>
+        )
+      }
     default:
       return <p key={block.id}>Unsupported block type. {block.type}</p>
   }
