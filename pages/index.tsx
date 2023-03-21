@@ -9,6 +9,7 @@ interface Post {
     Title: { title: { plain_text: string }[] }
     Tags: { multi_select: { name: string }[] }
     Published: { checkbox: boolean }
+    Description: { rich_text: { plain_text: string }[] }
   }
 }
 
@@ -72,8 +73,7 @@ const Home: NextPage<HomeProps> = ({ posts }) => {
                       </div>
                     </div>
                     <div className='prose max-w-none text-gray-500 dark:text-gray-400'>
-                      An overview of the new features released in v1 - code
-                      block copy, multiple authors, frontmatter layout and more
+                      {post.properties.Description.rich_text[0]?.plain_text}
                     </div>
                   </div>
                   <div className='text-base font-medium leading-6'>
