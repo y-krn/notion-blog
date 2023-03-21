@@ -13,6 +13,7 @@ import { useRouter } from 'next/router'
 import React from 'react'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { solarizedLight } from 'react-syntax-highlighter/dist/cjs/styles/hljs'
+import { Heading } from '@/components/Heading'
 import { getPublishedPosts, getPostById, getPageContent } from '@/lib/notion'
 
 type Color =
@@ -210,69 +211,27 @@ const RenderBlock: React.FC<{ block: BlockObjectResponseWithChildren }> = ({
       return <p>{renderRichText(block.paragraph.rich_text)}</p>
     case 'heading_1':
       return (
-        <h1 className='group flex whitespace-pre-wrap -ml-4 pl-4' id={block.id}>
-          <Link
-            href={`#${block.id}`}
-            className='absolute -ml-10 flex items-center opacity-0 border-0 group-hover:opacity-100'
-          >
-            ​
-            <div className='w-6 h-6 text-slate-400 ring-1 ring-slate-900/5 rounded-md shadow-sm flex items-center justify-center hover:ring-slate-900/10 hover:shadow hover:text-slate-700 dark:bg-slate-700 dark:text-slate-300 dark:shadow-none dark:ring-0'>
-              <svg width='12' height='12' fill='none' aria-hidden='true'>
-                <path
-                  d='M3.75 1v10M8.25 1v10M1 3.75h10M1 8.25h10'
-                  stroke='currentColor'
-                  stroke-width='1.5'
-                  stroke-linecap='round'
-                ></path>
-              </svg>
-            </div>
-          </Link>
-          <span>{renderRichText(block.heading_1.rich_text)}</span>
-        </h1>
+        <Heading
+          level={1}
+          id={block.id}
+          richText={renderRichText(block.heading_1.rich_text)}
+        />
       )
     case 'heading_2':
       return (
-        <h2 className='group flex whitespace-pre-wrap -ml-4 pl-4' id={block.id}>
-          <Link
-            href={`#${block.id}`}
-            className='absolute -ml-10 flex items-center opacity-0 border-0 group-hover:opacity-100'
-          >
-            ​
-            <div className='w-6 h-6 text-slate-400 ring-1 ring-slate-900/5 rounded-md shadow-sm flex items-center justify-center hover:ring-slate-900/10 hover:shadow hover:text-slate-700 dark:bg-slate-700 dark:text-slate-300 dark:shadow-none dark:ring-0'>
-              <svg width='12' height='12' fill='none' aria-hidden='true'>
-                <path
-                  d='M3.75 1v10M8.25 1v10M1 3.75h10M1 8.25h10'
-                  stroke='currentColor'
-                  stroke-width='1.5'
-                  stroke-linecap='round'
-                ></path>
-              </svg>
-            </div>
-          </Link>
-          <span>{renderRichText(block.heading_2.rich_text)}</span>
-        </h2>
+        <Heading
+          level={2}
+          id={block.id}
+          richText={renderRichText(block.heading_2.rich_text)}
+        />
       )
     case 'heading_3':
       return (
-        <h3 className='group flex whitespace-pre-wrap -ml-4 pl-4' id={block.id}>
-          <Link
-            href={`#${block.id}`}
-            className='absolute -ml-10 flex items-center opacity-0 border-0 group-hover:opacity-100'
-          >
-            ​
-            <div className='w-6 h-6 text-slate-400 ring-1 ring-slate-900/5 rounded-md shadow-sm flex items-center justify-center hover:ring-slate-900/10 hover:shadow hover:text-slate-700 dark:bg-slate-700 dark:text-slate-300 dark:shadow-none dark:ring-0'>
-              <svg width='12' height='12' fill='none' aria-hidden='true'>
-                <path
-                  d='M3.75 1v10M8.25 1v10M1 3.75h10M1 8.25h10'
-                  stroke='currentColor'
-                  stroke-width='1.5'
-                  stroke-linecap='round'
-                ></path>
-              </svg>
-            </div>
-          </Link>
-          <span>{renderRichText(block.heading_3.rich_text)}</span>
-        </h3>
+        <Heading
+          level={3}
+          id={block.id}
+          richText={renderRichText(block.heading_3.rich_text)}
+        />
       )
     case 'to_do':
       const toDoId = `to-do-${block.id}`
