@@ -63,6 +63,7 @@ type BlockObjectResponseWithChildren = BlockObjectResponse & ChildrenProperty
 
 interface Post {
   id: string
+  created_time: string
   properties: {
     Title: { title: { plain_text: string }[] }
     Tags: { multi_select: { name: string }[] }
@@ -75,6 +76,13 @@ interface PostPageProps {
   blocks: BlockObjectResponse[]
 }
 
+function formatDate(input: string) {
+  return new Date(input).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}
 const applyAnnotations = (text: string, annotations: Annotations) => {
   const colorClass = getColorValue(annotations.color)
 
@@ -211,11 +219,71 @@ const RenderBlock: React.FC<{ block: BlockObjectResponseWithChildren }> = ({
     case 'paragraph':
       return <p>{renderRichText(block.paragraph.rich_text)}</p>
     case 'heading_1':
-      return <h1>{renderRichText(block.heading_1.rich_text)}</h1>
+      return (
+        <h1 className='group flex whitespace-pre-wrap -ml-4 pl-4' id={block.id}>
+          <Link
+            href={`#${block.id}`}
+            className='absolute -ml-10 flex items-center opacity-0 border-0 group-hover:opacity-100'
+          >
+            ​
+            <div className='w-6 h-6 text-slate-400 ring-1 ring-slate-900/5 rounded-md shadow-sm flex items-center justify-center hover:ring-slate-900/10 hover:shadow hover:text-slate-700 dark:bg-slate-700 dark:text-slate-300 dark:shadow-none dark:ring-0'>
+              <svg width='12' height='12' fill='none' aria-hidden='true'>
+                <path
+                  d='M3.75 1v10M8.25 1v10M1 3.75h10M1 8.25h10'
+                  stroke='currentColor'
+                  stroke-width='1.5'
+                  stroke-linecap='round'
+                ></path>
+              </svg>
+            </div>
+          </Link>
+          <span>{renderRichText(block.heading_1.rich_text)}</span>
+        </h1>
+      )
     case 'heading_2':
-      return <h2>{renderRichText(block.heading_2.rich_text)}</h2>
+      return (
+        <h2 className='group flex whitespace-pre-wrap -ml-4 pl-4' id={block.id}>
+          <Link
+            href={`#${block.id}`}
+            className='absolute -ml-10 flex items-center opacity-0 border-0 group-hover:opacity-100'
+          >
+            ​
+            <div className='w-6 h-6 text-slate-400 ring-1 ring-slate-900/5 rounded-md shadow-sm flex items-center justify-center hover:ring-slate-900/10 hover:shadow hover:text-slate-700 dark:bg-slate-700 dark:text-slate-300 dark:shadow-none dark:ring-0'>
+              <svg width='12' height='12' fill='none' aria-hidden='true'>
+                <path
+                  d='M3.75 1v10M8.25 1v10M1 3.75h10M1 8.25h10'
+                  stroke='currentColor'
+                  stroke-width='1.5'
+                  stroke-linecap='round'
+                ></path>
+              </svg>
+            </div>
+          </Link>
+          <span>{renderRichText(block.heading_2.rich_text)}</span>
+        </h2>
+      )
     case 'heading_3':
-      return <h3>{renderRichText(block.heading_3.rich_text)}</h3>
+      return (
+        <h3 className='group flex whitespace-pre-wrap -ml-4 pl-4' id={block.id}>
+          <Link
+            href={`#${block.id}`}
+            className='absolute -ml-10 flex items-center opacity-0 border-0 group-hover:opacity-100'
+          >
+            ​
+            <div className='w-6 h-6 text-slate-400 ring-1 ring-slate-900/5 rounded-md shadow-sm flex items-center justify-center hover:ring-slate-900/10 hover:shadow hover:text-slate-700 dark:bg-slate-700 dark:text-slate-300 dark:shadow-none dark:ring-0'>
+              <svg width='12' height='12' fill='none' aria-hidden='true'>
+                <path
+                  d='M3.75 1v10M8.25 1v10M1 3.75h10M1 8.25h10'
+                  stroke='currentColor'
+                  stroke-width='1.5'
+                  stroke-linecap='round'
+                ></path>
+              </svg>
+            </div>
+          </Link>
+          <span>{renderRichText(block.heading_3.rich_text)}</span>
+        </h3>
+      )
     case 'to_do':
       const toDoId = `to-do-${block.id}`
       const toDoText = renderRichText(block.to_do.rich_text) || ''
@@ -232,28 +300,6 @@ const RenderBlock: React.FC<{ block: BlockObjectResponseWithChildren }> = ({
         </div>
       )
     case 'divider':
-      return (
-        <div
-          key={block.id}
-          className='inline-flex items-center justify-center w-full'
-        >
-          <hr className='w-64 h-1 my-8 bg-gray-200 border-0 rounded dark:bg-gray-700' />
-          <div className='absolute px-4 -translate-x-1/2 bg-white left-1/2 dark:bg-gray-900'>
-            <svg
-              aria-hidden='true'
-              className='w-5 h-5 text-gray-700 dark:text-gray-300'
-              viewBox='0 0 24 27'
-              fill='none'
-              xmlns='http://www.w3.org/2000/svg'
-            >
-              <path
-                d='M14.017 18L14.017 10.609C14.017 4.905 17.748 1.039 23 0L23.995 2.151C21.563 3.068 20 5.789 20 8H24V18H14.017ZM0 18V10.609C0 4.905 3.748 1.038 9 0L9.996 2.151C7.563 3.068 6 5.789 6 8H9.983L9.983 18L0 18Z'
-                fill='currentColor'
-              />
-            </svg>
-          </div>
-        </div>
-      )
       return <hr key={block.id} />
     case 'quote':
       return (
@@ -372,14 +418,53 @@ const PostPage: NextPage<PostPageProps> = ({ post, blocks }) => {
       <Head>
         <title>{post.properties.Title.title[0].plain_text}</title>
       </Head>
-      <article className='prose lg:prose-xl container mx-auto'>
-        <h1>{post.properties.Title.title[0].plain_text}</h1>
-        <p>
-          Tags:{' '}
-          {post.properties.Tags.multi_select.map((tag) => tag.name).join(', ')}
-        </p>
-        {renderBlocks(blocks)}
-      </article>
+      <div className='max-w-8xl mx-auto'>
+        <div className='flex px-4 pt-8 pb-10 lg:px-8'>
+          <Link
+            className='group flex font-semibold text-sm leading-6 text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'
+            href='/'
+          >
+            <svg
+              viewBox='0 -9 3 24'
+              className='overflow-visible mr-3 text-slate-400 w-auto h-6 group-hover:text-slate-600 dark:group-hover:text-slate-300'
+            >
+              <path
+                d='M3 0L0 3L3 6'
+                fill='none'
+                stroke='currentColor'
+                stroke-width='2'
+                stroke-linecap='round'
+                stroke-linejoin='round'
+              ></path>
+            </svg>
+            Go back
+          </Link>
+        </div>
+      </div>
+      <div className='px-4 sm:px-6 md:px-8'>
+        <div className='max-w-3xl mx-auto pb-28'>
+          <main>
+            <article className='relative pt-10'>
+              <h1 className='text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-200 md:text-3xl '>
+                {post.properties.Title.title[0].plain_text}
+              </h1>
+              <div className='text-sm leading-6'>
+                <dl>
+                  <dt className='sr-only'>Date</dt>
+                  <dd className='absolute top-0 inset-x-0 text-slate-700 dark:text-slate-400'>
+                    <time dateTime={post.created_time}>
+                      {formatDate(post.created_time)}
+                    </time>
+                  </dd>
+                </dl>
+              </div>
+              <div className='mt-12 prose prose-slate dark:prose-dark'>
+                {renderBlocks(blocks)}
+              </div>
+            </article>
+          </main>
+        </div>
+      </div>
     </>
   )
 }

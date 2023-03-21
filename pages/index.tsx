@@ -28,68 +28,65 @@ function formatDate(input: string) {
 const Home: NextPage<HomeProps> = ({ posts }) => {
   return (
     <>
-      <div className='space-y-2 pt-6 pb-8 md:space-y-5'>
-        <h1 className='text-3xl font-extrabold leading-9 tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl sm:leading-10 md:text-6xl md:leading-14'>
-          Latest
-        </h1>
-        <p className='text-lg leading-7 text-gray-500 dark:text-gray-400'>
-          A blog created with Next.js and Tailwind.css
-        </p>
-      </div>
-      <ul>
-        {posts.map((post) => (
-          <li key={post.id} className='py-12'>
-            <article>
-              <div className='space-y-2 xl:grid xl:grid-cols-4 xl:items-baseline xl:space-y-0'>
-                <dl>
-                  <dt className='sr-only'>Published on</dt>
-                  <dd className='text-base font-medium leading-6 text-gray-500 dark:text-gray-400'>
+      <div className='relative sm:pb-12 sm:ml-[calc(2rem+1px)] md:ml-[calc(3.5rem+1px)] lg:ml-[max(calc(14.5rem+1px),calc(100%-48rem))]'>
+        <div className='hidden absolute top-3 bottom-0 right-full mr-7 md:mr-[3.25rem] w-px bg-slate-200 dark:bg-slate-800 sm:block'></div>
+        <div className='space-y-16'>
+          {posts.map((post) => (
+            <article key={post.id} className='relative group'>
+              <div className='absolute -inset-y-2.5 -inset-x-4 md:-inset-y-4 md:-inset-x-6 sm:rounded-2xl group-hover:bg-slate-50/70 dark:group-hover:bg-slate-800/50'></div>
+              <svg
+                viewBox='0 0 9 9'
+                className='hidden absolute right-full mr-6 top-2 text-slate-200 dark:text-slate-600 md:mr-12 w-[calc(0.5rem+1px)] h-[calc(0.5rem+1px)] overflow-visible sm:block'
+              >
+                <circle
+                  cx='4.5'
+                  cy='4.5'
+                  r='4.5'
+                  stroke='currentColor'
+                  className='fill-white dark:fill-slate-900'
+                  stroke-width='2'
+                ></circle>
+              </svg>
+              <div className='relative'>
+                <h3 className='text-base font-semibold tracking-tight text-slate-900 dark:text-slate-200 pt-8 lg:pt-0'>
+                  {post.properties.Title.title[0].plain_text}
+                </h3>
+                <div className='mt-2 mb-4 prose prose-slate prose-a:relative prose-a:z-10 dark:prose-dark line-clamp-2'>
+                  <p>{post.properties.Description.rich_text[0]?.plain_text}</p>
+                </div>
+                <dl className='absolute left-0 top-0 lg:left-auto lg:right-full lg:mr-[calc(6.5rem+1px)]'>
+                  <dt className='sr-only'>Date</dt>
+                  <dd className='whitespace-nowrap text-sm leading-6 dark:text-slate-400'>
                     <time dateTime={post.created_time}>
                       {formatDate(post.created_time)}
                     </time>
                   </dd>
                 </dl>
-                <div className='space-y-5 xl:col-span-3'>
-                  <div className='space-y-6'>
-                    <div>
-                      <h2 className='text-3xl font-bold leading-8 tracking-tight'>
-                        <Link
-                          href={`/posts/${post.id}`}
-                          className='text-gray-900 dark:text-gray-100'
-                        >
-                          {post.properties.Title.title[0].plain_text}
-                        </Link>
-                      </h2>
-                      <div className='flex flex-wrap'>
-                        {post.properties.Tags.multi_select.map((tag) => (
-                          <Link
-                            key={post.id}
-                            href={`/posts/${post.id}`}
-                            className='mr-3 text-sm font-medium uppercase text-primary-500 hover:text-primary-600 dark:hover:text-primary-400'
-                          >
-                            {tag.name}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                    <div className='prose max-w-none text-gray-500 dark:text-gray-400'>
-                      {post.properties.Description.rich_text[0]?.plain_text}
-                    </div>
-                  </div>
-                  <div className='text-base font-medium leading-6'>
-                    <Link
-                      href={`/posts/${post.id}`}
-                      className='text-primary-500 hover:text-primary-600 dark:hover:text-primary-400'
-                    >
-                      Read more →
-                    </Link>
-                  </div>
-                </div>
               </div>
+              <Link
+                className='flex items-center text-sm text-sky-500 font-medium'
+                href={`/posts/${post.id}`}
+              >
+                <span className='absolute -inset-y-2.5 -inset-x-4 md:-inset-y-4 md:-inset-x-6 sm:rounded-2xl'></span>
+                <span className='relative'>Read more</span>
+                <svg
+                  className='relative mt-px overflow-visible ml-2.5 text-sky-300 dark:text-sky-700'
+                  width='3'
+                  height='6'
+                  viewBox='0 0 3 6'
+                  fill='none'
+                  stroke='currentColor'
+                  stroke-width='2'
+                  stroke-linecap='round'
+                  stroke-linejoin='round'
+                >
+                  <path d='M0 0L3 3L0 6'></path>
+                </svg>
+              </Link>
             </article>
-          </li>
-        ))}
-      </ul>
+          ))}
+        </div>
+      </div>
       <div className='flex justify-end text-base font-medium leading-6'>
         <Link
           className='text-primary-500 hover:text-primary-600 dark:hover:text-primary-400'
