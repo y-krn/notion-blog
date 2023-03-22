@@ -11,8 +11,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import React from 'react'
-import SyntaxHighlighter from 'react-syntax-highlighter'
-import { solarizedLight } from 'react-syntax-highlighter/dist/cjs/styles/hljs'
+import { Code } from '@/components/Code'
 import { Heading } from '@/components/Heading'
 import { getPublishedPosts, getPostById, getPageContent } from '@/lib/notion'
 
@@ -264,15 +263,10 @@ const RenderBlock: React.FC<{ block: BlockObjectResponseWithChildren }> = ({
         </details>
       )
     case 'code':
-      const codeBlock = block as CodeBlockObjectResponse
+      const language = block.code.language || 'text'
       const code = block.code.rich_text[0].plain_text
-      const language = codeBlock.code.language || 'text'
 
-      return (
-        <SyntaxHighlighter language={language} style={solarizedLight}>
-          {code}
-        </SyntaxHighlighter>
-      )
+      return <Code language={language} code={code} />
     case 'image':
       const imageUrl =
         block.image.type === 'external'
@@ -287,7 +281,7 @@ const RenderBlock: React.FC<{ block: BlockObjectResponseWithChildren }> = ({
         </figure>
       )
     case 'table':
-      const { has_column_header, has_row_header, table_width } = block.table
+      const { has_column_header, has_row_header } = block.table
       const rows = block.children
 
       return (
