@@ -27,9 +27,9 @@ const Post: React.FC<PostsProps> = ({ title, created_time, children }) => (
               d='M3 0L0 3L3 6'
               fill='none'
               stroke='currentColor'
-              stroke-width='2'
-              stroke-linecap='round'
-              stroke-linejoin='round'
+              strokeWidth='2'
+              strokeLinecap='round'
+              strokeLinejoin='round'
             ></path>
           </svg>
           Go back
