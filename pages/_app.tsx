@@ -7,7 +7,6 @@ export default function App({ Component, pageProps }: AppProps) {
   React.useEffect(() => {
     const script = document.createElement('script')
     script.src = 'https://platform.twitter.com/widgets.js'
-    script.defer = true
     document.body.appendChild(script)
 
     return () => {
