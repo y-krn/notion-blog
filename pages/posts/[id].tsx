@@ -10,39 +10,14 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import React from 'react'
 import { Code } from '@/components/Code'
+import { Divider } from '@/components/Divider'
 import { Heading } from '@/components/Heading'
 import Post from '@/components/Layout/Post'
+import { Paragraph } from '@/components/Paragraph'
+import { Quote } from '@/components/Quote'
+import { Text } from '@/components/Text'
+import { ToDo } from '@/components/ToDo'
 import { getPublishedPosts, getPostById, getPageContent } from '@/lib/notion'
-
-type Color =
-  | 'default'
-  | 'gray'
-  | 'brown'
-  | 'orange'
-  | 'yellow'
-  | 'green'
-  | 'blue'
-  | 'purple'
-  | 'pink'
-  | 'red'
-  | 'gray_background'
-  | 'brown_background'
-  | 'orange_background'
-  | 'yellow_background'
-  | 'green_background'
-  | 'blue_background'
-  | 'purple_background'
-  | 'pink_background'
-  | 'red_background'
-
-type Annotations = {
-  bold: boolean
-  italic: boolean
-  strikethrough: boolean
-  underline: boolean
-  code: boolean
-  color: Color
-}
 
 interface ChildrenProperty {
   children?: BlockObjectResponse[]
@@ -63,63 +38,6 @@ interface Post {
 interface PostPageProps {
   post: Post
   blocks: BlockObjectResponse[]
-}
-
-function formatDate(input: string) {
-  return new Date(input).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-}
-const applyAnnotations = (text: string, annotations: Annotations) => {
-  const colorClass = getColorValue(annotations.color)
-
-  let decoratedText = <span className={colorClass}>{text}</span>
-
-  if (annotations.bold) {
-    decoratedText = <strong>{decoratedText}</strong>
-  }
-  if (annotations.italic) {
-    decoratedText = <em>{decoratedText}</em>
-  }
-  if (annotations.strikethrough) {
-    decoratedText = <del>{decoratedText}</del>
-  }
-  if (annotations.underline) {
-    decoratedText = <u>{decoratedText}</u>
-  }
-  if (annotations.code) {
-    decoratedText = <code>{decoratedText}</code>
-  }
-
-  return decoratedText
-}
-
-const getColorValue = (color: Color): string => {
-  const colorMap: { [key in Color]: string } = {
-    default: 'text-inherit',
-    gray: 'text-gray-500',
-    brown: 'text-brown-500',
-    orange: 'text-orange-500',
-    yellow: 'text-yellow-500',
-    green: 'text-green-500',
-    blue: 'text-blue-500',
-    purple: 'text-purple-500',
-    pink: 'text-pink-500',
-    red: 'text-red-500',
-    gray_background: 'bg-gray-500',
-    brown_background: 'bg-brown-500',
-    orange_background: 'bg-orange-500',
-    yellow_background: 'bg-yellow-500',
-    green_background: 'bg-green-500',
-    blue_background: 'bg-blue-500',
-    purple_background: 'bg-purple-500',
-    pink_background: 'bg-pink-500',
-    red_background: 'bg-red-500',
-  }
-
-  return colorMap[color] || 'inherit'
 }
 
 const renderBlocks = (
@@ -174,25 +92,6 @@ const renderBlocks = (
 const RenderBlock: React.FC<{ block: BlockObjectResponseWithChildren }> = ({
   block,
 }) => {
-  const renderRichText = (richTextItems: RichTextItemResponse[]) => {
-    return richTextItems.map((item, index) => {
-      const annotations = item.annotations
-      const text = item.plain_text
-      const decoratedText = applyAnnotations(text, annotations)
-
-      const link = item.href
-      if (link) {
-        return (
-          <Link href={link} key={index}>
-            {decoratedText}
-          </Link>
-        )
-      }
-
-      return <React.Fragment key={index}>{decoratedText}</React.Fragment>
-    })
-  }
-
   const convertToEmbedURL = (url: string) => {
     const regex = /^https:\/\/www\.youtube\.com\/watch\?v=(.+)$/
     const match = url.match(regex)
@@ -206,58 +105,49 @@ const RenderBlock: React.FC<{ block: BlockObjectResponseWithChildren }> = ({
 
   switch (block.type) {
     case 'paragraph':
-      return <p>{renderRichText(block.paragraph.rich_text)}</p>
+      return (
+        <Paragraph>
+          <Text rich_text={block.paragraph.rich_text} />
+        </Paragraph>
+      )
     case 'heading_1':
       return (
-        <Heading
-          level={1}
-          id={block.id}
-          richText={renderRichText(block.heading_1.rich_text)}
-        />
+        <Heading level={1} id={block.id}>
+          <Text rich_text={block.heading_1.rich_text} />
+        </Heading>
       )
     case 'heading_2':
       return (
-        <Heading
-          level={2}
-          id={block.id}
-          richText={renderRichText(block.heading_2.rich_text)}
-        />
+        <Heading level={2} id={block.id}>
+          <Text rich_text={block.heading_2.rich_text} />
+        </Heading>
       )
     case 'heading_3':
       return (
-        <Heading
-          level={3}
-          id={block.id}
-          richText={renderRichText(block.heading_3.rich_text)}
-        />
+        <Heading level={3} id={block.id}>
+          <Text rich_text={block.heading_3.rich_text} />
+        </Heading>
       )
     case 'to_do':
-      const toDoId = `to-do-${block.id}`
-      const toDoText = renderRichText(block.to_do.rich_text) || ''
-
       return (
-        <div key={block.id}>
-          <input
-            type='checkbox'
-            id={toDoId}
-            defaultChecked={block.to_do.checked}
-            disabled
-          />
-          <label htmlFor={toDoId}>{toDoText}</label>
-        </div>
+        <ToDo id={block.id} checked={block.to_do.checked}>
+          <Text rich_text={block.to_do.rich_text} />
+        </ToDo>
       )
     case 'divider':
-      return <hr key={block.id} />
+      return <Divider id={block.id} />
     case 'quote':
       return (
-        <blockquote key={block.id}>
-          {renderRichText(block.quote.rich_text)}
-        </blockquote>
+        <Quote id={block.id}>
+          <Text rich_text={block.quote.rich_text} />
+        </Quote>
       )
     case 'toggle':
       return (
         <details key={block.id}>
-          <summary>{renderRichText(block.toggle.rich_text)}</summary>
+          <summary>
+            <Text rich_text={block.toggle.rich_text} />
+          </summary>
           {block.children && renderBlocks(block.children)}
         </details>
       )

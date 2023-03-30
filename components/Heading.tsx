@@ -1,13 +1,13 @@
 import Link from 'next/link'
 import { ReactNode } from 'react'
 
-type HeadingProps = {
+type Props = {
   level: 1 | 2 | 3
   id: string
-  richText: ReactNode
+  children?: ReactNode
 }
 
-export const Heading = ({ level, id, richText }: HeadingProps) => {
+export const Heading = ({ level, id, children }: Props) => {
   const HeadingTag = `h${level}` as keyof JSX.IntrinsicElements
 
   return (
@@ -27,7 +27,7 @@ export const Heading = ({ level, id, richText }: HeadingProps) => {
           </svg>
         </div>
       </Link>
-      <span>{richText}</span>
+      <span>{children}</span>
     </HeadingTag>
   )
 }
