@@ -27,8 +27,7 @@ export const getPublishedPosts = async () => {
 export const getPageContent = async (
   pageId: string,
 ): Promise<BlockObjectResponse[]> => {
-  const response = await notion.blocks.children.list({ block_id: pageId })
-  let content: BlockObjectResponse[] = response.results as BlockObjectResponse[]
+  const content = await getBlockChildren(pageId)
 
   for (const block of content) {
     if (block.has_children) {
