@@ -13,12 +13,14 @@ import React from 'react'
 import { render } from 'react-dom'
 import { Code } from '@/components/Code'
 import { Divider } from '@/components/Divider'
+import { Embed } from '@/components/Embed'
 import { Heading } from '@/components/Heading'
 import Post from '@/components/Layout/Post'
 import { Paragraph } from '@/components/Paragraph'
 import { Quote } from '@/components/Quote'
 import { Text } from '@/components/Text'
 import { ToDo } from '@/components/ToDo'
+import { Video } from '@/components/Video'
 import { getPublishedPosts, getPostById, getPageContent } from '@/lib/notion'
 
 interface Post {
@@ -109,17 +111,6 @@ const RenderBlock: React.FC<{
   block: BlockObjectResponse
   children?: React.ReactNode
 }> = ({ block, children }) => {
-  const convertToEmbedURL = (url: string) => {
-    const regex = /^https:\/\/www\.youtube\.com\/watch\?v=(.+)$/
-    const match = url.match(regex)
-
-    if (match && match[1]) {
-      return `https://www.youtube.com/embed/${match[1]}`
-    }
-
-    return url
-  }
-
   switch (block.type) {
     case 'paragraph':
       return (
@@ -213,29 +204,12 @@ const RenderBlock: React.FC<{
     case 'child_page': //TODO
       return null
     case 'embed':
-      return (
-        <blockquote className='twitter-tweet'>
-          <Link href={block.embed.url}></Link>
-        </blockquote>
-      )
+      return <Embed url={block.embed.url} />
     case 'video':
       if (block.video.type === 'external') {
-        const embedUrl = convertToEmbedURL(block.video.external.url)
-        return (
-          <div>
-            <iframe
-              src={embedUrl}
-              title={`Video: ${block.id}`}
-              allowFullScreen
-            ></iframe>
-          </div>
-        )
+        return <Video id={block.id} url={block.video.external.url} />
       } else {
-        return (
-          <div>
-            <video src={block.video.file.url} controls />
-          </div>
-        )
+        return <Video id={block.id} url={block.video.file.url} />
       }
     default:
       return <p key={block.id}>Unsupported block type. {block.type}</p>
