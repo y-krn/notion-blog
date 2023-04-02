@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import { json } from 'stream/consumers'
 import {
   BlockObjectResponse,
   BulletedListItemBlockObjectResponse,
@@ -9,6 +10,7 @@ import type { NextPage, GetStaticPaths, GetStaticProps } from 'next'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import React from 'react'
+import { render } from 'react-dom'
 import { Code } from '@/components/Code'
 import { Divider } from '@/components/Divider'
 import { Heading } from '@/components/Heading'
@@ -18,12 +20,6 @@ import { Quote } from '@/components/Quote'
 import { Text } from '@/components/Text'
 import { ToDo } from '@/components/ToDo'
 import { getPublishedPosts, getPostById, getPageContent } from '@/lib/notion'
-
-interface ChildrenProperty {
-  children?: BlockObjectResponse[]
-}
-
-type BlockObjectResponseWithChildren = BlockObjectResponse & ChildrenProperty
 
 interface Post {
   id: string
@@ -40,13 +36,26 @@ interface PostPageProps {
   blocks: BlockObjectResponse[]
 }
 
+const isChildBlock = (
+  block: BlockObjectResponse,
+  parent_id: string,
+): boolean => {
+  return (
+    (block.parent.type === 'page_id' && block.parent.page_id === parent_id) ||
+    (block.parent.type === 'block_id' && block.parent.block_id === parent_id)
+  )
+}
+
 const renderBlocks = (
-  blocks: BlockObjectResponseWithChildren[],
+  blocks: BlockObjectResponse[],
+  parent_id: string,
 ): React.ReactNode[] => {
   const renderedBlocks: React.ReactNode[] = []
 
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i]
+
+    if (!isChildBlock(block, parent_id)) continue
 
     if (block.type === 'bulleted_list_item') {
       const listItems: React.ReactNode[] = []
@@ -82,6 +91,13 @@ const renderBlocks = (
       i--
 
       renderedBlocks.push(<ol key={block.id}>{listItems}</ol>)
+    } else if (block.has_children) {
+      const childItems = renderBlocks(blocks, block.id)
+      renderedBlocks.push(
+        <RenderBlock key={block.id} block={block}>
+          {childItems}
+        </RenderBlock>,
+      )
     } else {
       renderedBlocks.push(<RenderBlock key={block.id} block={block} />)
     }
@@ -89,9 +105,10 @@ const renderBlocks = (
   return renderedBlocks
 }
 
-const RenderBlock: React.FC<{ block: BlockObjectResponseWithChildren }> = ({
-  block,
-}) => {
+const RenderBlock: React.FC<{
+  block: BlockObjectResponse
+  children?: React.ReactNode
+}> = ({ block, children }) => {
   const convertToEmbedURL = (url: string) => {
     const regex = /^https:\/\/www\.youtube\.com\/watch\?v=(.+)$/
     const match = url.match(regex)
@@ -148,7 +165,7 @@ const RenderBlock: React.FC<{ block: BlockObjectResponseWithChildren }> = ({
           <summary>
             <Text rich_text={block.toggle.rich_text} />
           </summary>
-          {block.children && renderBlocks(block.children)}
+          {children}
         </details>
       )
     case 'code':
@@ -171,44 +188,27 @@ const RenderBlock: React.FC<{ block: BlockObjectResponseWithChildren }> = ({
       )
     case 'table':
       const { has_column_header, has_row_header, table_width } = block.table
-      const rows = block.children
-
       return (
         <table>
-          <tbody>
-            {rows?.map((row, rowIndex: number) => (
-              <tr key={row.id}>
-                {row.type === 'table_row' &&
-                  row.table_row.cells.map(
-                    (cell: RichTextItemResponse[], cellIndex: number) => (
-                      <td key={`${row.id}-${cellIndex}`}>
-                        {has_row_header && cellIndex === 0 && (
-                          <strong>{cell[0].plain_text}</strong>
-                        )}
-                        {has_column_header && rowIndex === 0 && (
-                          <strong>{cell[0].plain_text}</strong>
-                        )}
-                        {rowIndex !== 0 && <span>{cell[0].plain_text}</span>}
-                      </td>
-                    ),
-                  )}
-              </tr>
-            ))}
-          </tbody>
+          <tbody>{children}</tbody>
         </table>
       )
-    case 'column_list':
+    case 'table_row':
       return (
-        <div className='flex'>
-          {block.children?.map((column: BlockObjectResponseWithChildren) => (
-            <div key={column.id} className='flex-1'>
-              {column.children?.map((childBlock) => (
-                <RenderBlock key={childBlock.id} block={childBlock} />
-              ))}
-            </div>
-          ))}
-        </div>
+        <tr key={block.id}>
+          {block.table_row.cells.map(
+            (cell: RichTextItemResponse[], cellIndex: number) => (
+              <td key={`${block.id}-${cellIndex}`}>
+                <span>{<Text rich_text={cell} />}</span>
+              </td>
+            ),
+          )}
+        </tr>
       )
+    case 'column_list':
+      return <div className='flex'>{children}</div>
+    case 'column':
+      return <div className='flex-1'>{children}</div>
     case 'file': //TODO
     case 'child_page': //TODO
       return null
@@ -254,7 +254,7 @@ const PostPage: NextPage<PostPageProps> = ({ post, blocks }) => {
       title={post.properties.Title.title[0].plain_text}
       created_time={post.created_time}
     >
-      {renderBlocks(blocks)}
+      {renderBlocks(blocks, post.id)}
     </Post>
   )
 }
