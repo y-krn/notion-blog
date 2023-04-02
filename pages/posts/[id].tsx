@@ -207,9 +207,11 @@ const RenderBlock: React.FC<{
       return <Embed url={block.embed.url} />
     case 'video':
       if (block.video.type === 'external') {
-        return <Video id={block.id} url={block.video.external.url} />
+        return (
+          <Video id={block.id} type='external' url={block.video.external.url} />
+        )
       } else {
-        return <Video id={block.id} url={block.video.file.url} />
+        return <Video id={block.id} type='file' url={block.video.file.url} />
       }
     default:
       return <p key={block.id}>Unsupported block type. {block.type}</p>

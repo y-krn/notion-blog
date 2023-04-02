@@ -1,5 +1,6 @@
 type Props = {
   id: string
+  type: string
   url: string
 }
 
@@ -14,11 +15,19 @@ const convertToEmbedURL = (url: string) => {
   return url
 }
 
-export const Video = ({ id, url }: Props) => {
-  const embedUrl = convertToEmbedURL(url)
-  return (
-    <div>
-      <iframe src={embedUrl} title={`Video: ${id}`} allowFullScreen></iframe>
-    </div>
-  )
+export const Video = ({ id, type, url }: Props) => {
+  if (type === 'external') {
+    const embedUrl = convertToEmbedURL(url)
+    return (
+      <div>
+        <iframe src={embedUrl} title={`Video: ${id}`} allowFullScreen></iframe>
+      </div>
+    )
+  } else {
+    return (
+      <div>
+        <video src={url} controls />
+      </div>
+    )
+  }
 }
