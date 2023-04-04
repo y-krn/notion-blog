@@ -20,6 +20,7 @@ import { Paragraph } from '@/components/Paragraph'
 import { Quote } from '@/components/Quote'
 import { Text } from '@/components/Text'
 import { ToDo } from '@/components/ToDo'
+import { Toggle } from '@/components/Toggle'
 import { Video } from '@/components/Video'
 import { getPublishedPosts, getPostById, getPageContent } from '@/lib/notion'
 
@@ -151,13 +152,11 @@ const RenderBlock: React.FC<{
         </Quote>
       )
     case 'toggle':
+      const summary = <Text rich_text={block.toggle.rich_text} />
       return (
-        <details key={block.id}>
-          <summary>
-            <Text rich_text={block.toggle.rich_text} />
-          </summary>
+        <Toggle id={block.id} summary={summary}>
           {children}
-        </details>
+        </Toggle>
       )
     case 'code':
       const code = block.code.rich_text[0].plain_text
