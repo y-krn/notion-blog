@@ -179,7 +179,7 @@ const RenderBlock: React.FC<{
     case 'table':
       const { has_column_header, has_row_header, table_width } = block.table
       return (
-        <table>
+        <table className='table-auto'>
           <tbody>{children}</tbody>
         </table>
       )
